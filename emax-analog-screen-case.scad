@@ -122,13 +122,36 @@ module case(label=false) {
         }
     }
     
-    case_w_pcb_and_bat_lcd(label);
     
     // TODO: buttons
     
     // TODO: usb hole
     
     // TODO: screws
+    
+    // holding screws
+    holding_dia=5;
+    holding_on_d=0;
+    holding_on_w=1;
+
+    module holds(dia, h=case_h) {
+        module holding_cyl() {
+            cylinder(h=h, d=dia, center=true);
+        }
+        translate([case_w/2-holding_on_d*holding_dia/2,case_d/2-holding_on_w*holding_dia/2,0]) holding_cyl();
+        translate([-(case_w/2-holding_on_d*holding_dia/2),case_d/2-holding_on_w*holding_dia/2,0]) holding_cyl();
+        translate([case_w/2-holding_on_d*holding_dia/2,-case_d/2+holding_on_w*holding_dia/2,0]) holding_cyl();
+        translate([-(case_w/2-holding_on_d*holding_dia/2),-case_d/2+holding_on_w*holding_dia/2,0]) holding_cyl();
+    }
+
+    holding_inner_dia=2;    
+    difference() {
+        union() {
+            case_w_pcb_and_bat_lcd(label);
+            holds(dia=holding_dia);
+        }
+        holds(dia=holding_inner_dia, h=case_h*2);
+    }
 }
 
 //!case();
