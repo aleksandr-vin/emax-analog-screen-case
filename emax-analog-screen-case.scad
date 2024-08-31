@@ -51,27 +51,68 @@ pcb_antenna_back_legs=.01; // they are leveled with other connectors on that sid
 antenna_w_padding=3;
 antenna_d_padding=2.425;
 measured_distance_between_antennas_centers=(97+84.5)/2;
+echo("measured_distance_between_antennas_centers: ", measured_distance_between_antennas_centers);
 
-// NOTE: will remove power connector and solder wires to the pcb
-//power_connection_w=18;
-//power_connection_d=0;
+measured_distance_between_buttons_screw_centers=(91.8+88.3)/2;
+echo("measured_distance_between_buttons_screw_centers: ", measured_distance_between_buttons_screw_centers);
+
+measured_distance_between_antenna_center_and_buttons_screw_center=(22.4+19)/2;
+echo("measured_distance_between_antenna_center_and_buttons_screw_center: ", measured_distance_between_antenna_center_and_buttons_screw_center);
+
+measured_distance_between_central_support_screws=(25.4-9+12.4)/2;
+echo("measured_distance_between_central_support_screws: ", measured_distance_between_central_support_screws);
+
+measured_smallest_distance_between_central_support_screw_and_pcb_edge=(9+11.4)/2;
+echo("measured_smallest_distance_between_central_support_screw_and_pcb_edge: ", measured_smallest_distance_between_central_support_screw_and_pcb_edge);
+
+// NOTE: Removed power connector and soldered wires to the pcb
 
 module pcb() {
-    // pcb itself
-    translate([0,0,-pcb_h/2]) cube([pcb_w,pcb_d,pcb_h], center=true);
-    
-    // antennas
     module ant() {
         translate([0,0,(pcb_antenna_connector_h+pcb_h+pcb_antenna_back_legs)/2-pcb_h-pcb_antenna_back_legs])
             cylinder(h=pcb_antenna_connector_h+pcb_h+pcb_antenna_back_legs, d=pcb_antenna_connector_dia, center=true);
     }
     
-    translate([-(pcb_w/2-pcb_antenna_connector_dia/2-antenna_w_padding),measured_distance_between_antennas_centers/2,0]) ant();
-    translate([-(pcb_w/2-pcb_antenna_connector_dia/2-antenna_w_padding),-measured_distance_between_antennas_centers/2,0]) ant();
-    
     // TODO: buttons
     
-    // TODO: screw hole(s)
+    screw_dia=1.4;
+    screw_h=4.5;
+    screw_post_dia=4.5;
+    pcb_h_to_pcb=5;
+    
+    module screw_post() {
+        difference() {
+            cylinder(h=pcb_h_to_pcb, d=screw_post_dia, center=true);
+            translate([0,0,-(-screw_h/2+pcb_h_to_pcb/2+0.01)]) cylinder(h=screw_h, d=screw_dia, center=true);
+        }
+    }
+    
+    center_to_antenna_center_x_vec=-(pcb_w/2-pcb_antenna_connector_dia/2-antenna_w_padding);
+    
+    module screw_posts() {
+        union() {
+            // both buttons' support screw posts, distantiated from antenna's center
+            translate([center_to_antenna_center_x_vec+measured_distance_between_antenna_center_and_buttons_screw_center,measured_distance_between_buttons_screw_centers/2,-pcb_h_to_pcb/2+0.01]) screw_post();
+            translate([center_to_antenna_center_x_vec+measured_distance_between_antenna_center_and_buttons_screw_center,-measured_distance_between_buttons_screw_centers/2,-pcb_h_to_pcb/2+0.01]) screw_post();
+            // center closest to pcb edge screw post:
+            vec_x_to_center_closest_to_pcb_edge_screw_post=-pcb_w/2+measured_smallest_distance_between_central_support_screw_and_pcb_edge;
+            translate([vec_x_to_center_closest_to_pcb_edge_screw_post,0,-pcb_h_to_pcb/2+0.01]) screw_post();
+            // last center screw post:
+            translate([vec_x_to_center_closest_to_pcb_edge_screw_post+measured_distance_between_central_support_screws,0,-pcb_h_to_pcb/2+0.01]) screw_post();
+        }
+    }
+    
+    difference() {
+        union() {
+            // pcb itself
+            translate([0,0,-pcb_h/2]) cube([pcb_w,pcb_d,pcb_h], center=true);
+            
+            // antennas
+            translate([center_to_antenna_center_x_vec,measured_distance_between_antennas_centers/2,0]) ant();
+            translate([center_to_antenna_center_x_vec,-measured_distance_between_antennas_centers/2,0]) ant();
+        }
+        screw_posts();
+    }
 }
 
 
@@ -184,9 +225,7 @@ module case(label=false) {
     
     
     // TODO: buttons
-    
-    // TODO: on/off button
-    
+        
     // NOTE: Usb hole is cut by battery-compartment
     
     // TODO: screws
