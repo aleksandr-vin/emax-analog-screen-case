@@ -73,8 +73,6 @@ module pcb() {
             cylinder(h=pcb_antenna_connector_h+pcb_h+pcb_antenna_back_legs, d=pcb_antenna_connector_dia, center=true);
     }
     
-    // TODO: buttons
-    
     screw_dia=1.4;
     screw_h=4.5;
     screw_post_dia=4.5;
@@ -88,17 +86,75 @@ module pcb() {
     }
     
     center_to_antenna_center_x_vec=-(pcb_w/2-pcb_antenna_connector_dia/2-antenna_w_padding);
+    center_to_buttons_screw_center_x_vec=center_to_antenna_center_x_vec+measured_distance_between_antenna_center_and_buttons_screw_center;
     
     module screw_posts() {
         union() {
             // both buttons' support screw posts, distantiated from antenna's center
-            translate([center_to_antenna_center_x_vec+measured_distance_between_antenna_center_and_buttons_screw_center,measured_distance_between_buttons_screw_centers/2,-pcb_h_to_pcb/2+0.01]) screw_post();
-            translate([center_to_antenna_center_x_vec+measured_distance_between_antenna_center_and_buttons_screw_center,-measured_distance_between_buttons_screw_centers/2,-pcb_h_to_pcb/2+0.01]) screw_post();
+            translate([center_to_buttons_screw_center_x_vec,measured_distance_between_buttons_screw_centers/2,-pcb_h_to_pcb/2+0.01]) screw_post();
+            translate([center_to_buttons_screw_center_x_vec,-measured_distance_between_buttons_screw_centers/2,-pcb_h_to_pcb/2+0.01]) screw_post();
             // center closest to pcb edge screw post:
             vec_x_to_center_closest_to_pcb_edge_screw_post=-pcb_w/2+measured_smallest_distance_between_central_support_screw_and_pcb_edge;
             translate([vec_x_to_center_closest_to_pcb_edge_screw_post,0,-pcb_h_to_pcb/2+0.01]) screw_post();
             // last center screw post:
             translate([vec_x_to_center_closest_to_pcb_edge_screw_post+measured_distance_between_central_support_screws,0,-pcb_h_to_pcb/2+0.01]) screw_post();
+        }
+    }
+    
+    button_cut_width=0.5;
+    button_d=7;
+    button_w=10;
+    button_cut_h=10+pcb_h_to_pcb;
+    button_leg_thinning=1;
+    pcb_button_h=3.8-1.4;
+    button_h=pcb_h_to_pcb-pcb_button_h;
+    
+    module button_cuts() {
+        union() {
+            translate([-button_cut_width/2,button_cut_width/2+button_d/2,0]) cube([button_w+button_cut_width,button_cut_width,button_cut_h], center=true);
+            translate([-button_cut_width/2,-(button_cut_width/2+button_d/2),0]) cube([button_w+button_cut_width,button_cut_width,button_cut_h], center=true);
+            translate([-button_cut_width/2-button_w/2,0,0]) cube([button_cut_width,button_d+2*button_cut_width,button_cut_h], center=true);
+            translate([button_w/2-(button_w-button_d)/2,0,button_leg_thinning/2-(button_cut_h/2-pcb_h_to_pcb)]) cube([button_w-button_d,button_d,button_leg_thinning], center=true);
+        }
+    }
+    
+    module button() {
+        translate([-(button_w-button_d)/2,0,0]) cube([button_d,button_d,button_h], center=true);
+    }
+    
+    one_side_buttons_distance=screw_post_dia+1; // NOTE: if zero distance, then they will share the cut
+    
+    button_FR_PLUS_vec=[-button_w/2-button_cut_width+button_cut_width/2-one_side_buttons_distance/2,measured_distance_between_buttons_screw_centers/2,0];
+    button_CH_MIN_vec =[-button_w/2-button_cut_width+button_cut_width/2+button_w+button_cut_width+one_side_buttons_distance/2,measured_distance_between_buttons_screw_centers/2,0];
+    button_MENU_vec   =[-button_w/2-button_cut_width+button_cut_width/2-one_side_buttons_distance/2,-measured_distance_between_buttons_screw_centers/2,0];
+    button_AUTO_vec   =[-button_w/2-button_cut_width+button_cut_width/2+button_w+button_cut_width+one_side_buttons_distance/2,-measured_distance_between_buttons_screw_centers/2,0];
+    
+    module place_buttons() {
+        translate([center_to_buttons_screw_center_x_vec,0,0]) {
+            translate(button_FR_PLUS_vec) rotate([0,0,180]) children(0);
+            translate(button_CH_MIN_vec)                    children(1);
+            translate(button_MENU_vec)    rotate([0,0,180]) children(2);
+            translate(button_AUTO_vec)                      children(3);
+        }
+    }
+
+    module buttons_cuts() {
+        translate([0,0,button_cut_h/2-pcb_h_to_pcb])
+        place_buttons() {
+            button_cuts();
+            button_cuts();
+            button_cuts();
+            button_cuts();
+        }
+    }
+    
+    module buttons() {
+        translate([0,0,-button_h/2+0.01])
+        place_buttons() {
+            button();
+            button();
+            button();
+            button();
         }
     }
     
@@ -110,13 +166,14 @@ module pcb() {
             // antennas
             translate([center_to_antenna_center_x_vec,measured_distance_between_antennas_centers/2,0]) ant();
             translate([center_to_antenna_center_x_vec,-measured_distance_between_antennas_centers/2,0]) ant();
+            buttons_cuts();
         }
         screw_posts();
+        buttons();
     }
 }
 
-
-//!pcb();
+//!%pcb();
 
 battery_w=35;
 battery_d=79;
@@ -222,13 +279,8 @@ module case(label=false) {
             translate([((lcd_panel_w-lcd_screen_w)/2-lcd_screen_w_padding),0,case_h/2-case_h_depth_for_lcd]) lcd_panel(label);
         }
     }
-    
-    
-    // TODO: buttons
-        
+         
     // NOTE: Usb hole is cut by battery-compartment
-    
-    // TODO: screws
     
     // holding screws
     holding_dia=5;
