@@ -46,10 +46,11 @@ pcb_w=40;
 pcb_d=102;
 pcb_h=8; // from legs+connectors on back side to power connector on front side
 pcb_antenna_connector_h=10;
-pcb_antenna_connector_dia=6; // SMA diameter
+pcb_antenna_connector_dia=6.4; // SMA diameter
 pcb_antenna_back_legs=.01; // they are leveled with other connectors on that side
 antenna_w_padding=3;
-antenna_d_padding=3;
+antenna_d_padding=2.425;
+measured_distance_between_antennas_centers=(97+84.5)/2;
 
 // NOTE: will remove power connector and solder wires to the pcb
 //power_connection_w=18;
@@ -65,15 +66,16 @@ module pcb() {
             cylinder(h=pcb_antenna_connector_h+pcb_h+pcb_antenna_back_legs, d=pcb_antenna_connector_dia, center=true);
     }
     
-    translate([-(pcb_w/2-pcb_antenna_connector_dia/2-antenna_w_padding),pcb_d/2-pcb_antenna_connector_dia/2-antenna_d_padding,0]) ant();
-        translate([-(pcb_w/2-pcb_antenna_connector_dia/2-antenna_w_padding),-(pcb_d/2-pcb_antenna_connector_dia/2-antenna_d_padding),0]) ant();
+    translate([-(pcb_w/2-pcb_antenna_connector_dia/2-antenna_w_padding),measured_distance_between_antennas_centers/2,0]) ant();
+    translate([-(pcb_w/2-pcb_antenna_connector_dia/2-antenna_w_padding),-measured_distance_between_antennas_centers/2,0]) ant();
     
     // TODO: buttons
     
-    // TODO: add power on/off button
-    
     // TODO: screw hole(s)
 }
+
+
+//!pcb();
 
 battery_w=35;
 battery_d=79;
