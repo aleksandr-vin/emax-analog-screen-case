@@ -70,7 +70,7 @@ module pcb() {
     
     // TODO: buttons
     
-    // TODO: power connector
+    // TODO: add power on/off button
     
     // TODO: screw hole(s)
 }
@@ -80,13 +80,57 @@ battery_d=79;
 battery_h=24;
 
 module battery_compartment() {
-    cube([battery_w,battery_d,battery_h], center=true);
-    
-    // NOTE: See [insert_part] slice for space for wires
-    
-    // Open cut for space for usb connection a charging status led
-    cube([battery_w+20,battery_d-2*10,battery_h-2*5], center=true);
+    union() {
+        cube([battery_w,battery_d,battery_h], center=true);
+        
+        // NOTE: See [insert_part] slice for space for wires
+        
+        // Open cut for space for usb connection a charging status led
+        cube([battery_w+20,battery_d-2*10,battery_h-2*5], center=true);
+    }
 }
+
+on_off_sw_w=14;
+on_off_sw_d=21;
+on_off_sw_h=7;
+on_off_sw_button_w=7.5;
+on_off_sw_button_d=7;
+on_off_sw_button_h=4.5;
+on_off_sw_h_to_pcb=5;
+on_off_sw_screw_post_dia=5;
+
+module on_off_switch() {
+    screw_dia=1.5;
+    screw_h=4;
+    screw_posts_distance=15;
+    
+    module screw_post() {
+        difference() {
+            cylinder(h=on_off_sw_h_to_pcb, d=on_off_sw_screw_post_dia, center=true);
+            translate([0,0,-screw_h/2+on_off_sw_h_to_pcb/2+0.01]) cylinder(h=screw_h, d=screw_dia, center=true);
+        }
+    }
+        
+    difference() {
+        union() {
+            cube([on_off_sw_w,on_off_sw_d,on_off_sw_h], center=true);
+        
+            // button safe cut
+            translate([on_off_sw_w/2 + on_off_sw_button_w/2,0,+on_off_sw_button_h/2-on_off_sw_h/2]) cube([on_off_sw_button_w,on_off_sw_button_d,on_off_sw_button_h], center=true);
+            
+            // backside safe cut space
+            translate([-on_off_sw_w/2,0,0]) cube([on_off_sw_w,on_off_sw_d,on_off_sw_h], center=true);
+        }
+        
+        // screw posts
+        union() {
+            translate([0,screw_posts_distance/2,on_off_sw_h_to_pcb/2-on_off_sw_h/2-0.01]) screw_post();
+            translate([0,-screw_posts_distance/2,on_off_sw_h_to_pcb/2-on_off_sw_h/2-0.01]) screw_post();
+        }
+    }
+}
+
+//!on_off_switch();
 
 // TODO: add connection for fan --> to plug it when working at the bench w drone!!!???
 
@@ -104,6 +148,9 @@ case_h=
 case_inner_slice_wall=case_h_depth+2;
 top_battery_wall_h=2;
 
+
+pcb_cap_h=case_h/2-case_h_depth-pcb_h+.01;
+
 module case(label=false) {
     module case_w_pcb() {
         difference() {
@@ -118,10 +165,17 @@ module case(label=false) {
             translate([-case_w/2+battery_w/2+case_h_depth,0,battery_h/2-(+case_h/2-case_h_depth)]) battery_compartment();
         }
     }
-
-    module case_w_pcb_and_bat_lcd(label=false) {
+    
+    module case_w_pcb_and_bat_and_power_sw() {
         difference() {
             case_w_pcb_and_bat();
+            translate([-case_w/2+on_off_sw_d/2+case_h_depth,on_off_sw_w/2-(+case_d/2-case_h_depth),-on_off_sw_h/2-(+case_h/2-case_h_depth)+pcb_h]) rotate([0,0,-90]) on_off_switch();
+        }
+    }
+    
+    module case_w_pcb_and_bat_and_power_sw_and_lcd(label=false) {
+        difference() {
+            case_w_pcb_and_bat_and_power_sw();
             translate([((lcd_panel_w-lcd_screen_w)/2-lcd_screen_w_padding),0,case_h/2-case_h_depth_for_lcd]) lcd_panel(label);
         }
     }
@@ -129,7 +183,9 @@ module case(label=false) {
     
     // TODO: buttons
     
-    // TODO: usb hole
+    // TODO: on/off button
+    
+    // NOTE: Usb hole is cut by battery-compartment
     
     // TODO: screws
     
@@ -151,7 +207,7 @@ module case(label=false) {
     holding_inner_dia=2;    
     difference() {
         union() {
-            case_w_pcb_and_bat_lcd(label);
+            case_w_pcb_and_bat_and_power_sw_and_lcd(label);
             holds(dia=holding_dia);
         }
         holds(dia=holding_inner_dia, h=case_h*2);
@@ -171,7 +227,6 @@ module sliced_case(separate=20, place=true) {
         }
     }
     
-    pcb_cap_h=case_h/2-case_h_depth-pcb_h+.01;
     module pcb_cap() {
         difference() {
             case();
