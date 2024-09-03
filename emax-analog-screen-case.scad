@@ -46,9 +46,9 @@ pcb_w=40;
 pcb_d=102;
 pcb_h=8; // from legs+connectors on back side to power connector on front side
 pcb_antenna_connector_h=10;
-pcb_antenna_connector_dia=6.4; // SMA diameter
+pcb_antenna_connector_dia=7; // SMA diameter
 pcb_antenna_back_legs=.01; // they are leveled with other connectors on that side
-antenna_w_padding=3;
+antenna_w_padding=2.7;
 antenna_d_padding=2.425;
 measured_distance_between_antennas_centers=(97+84.5)/2;
 echo("measured_distance_between_antennas_centers: ", measured_distance_between_antennas_centers);
@@ -101,7 +101,7 @@ module pcb() {
         }
     }
     
-    button_cut_width=0.5;
+    button_cut_width=0.8;
     button_d=7;
     button_w=10;
     button_cut_h=10+pcb_h_to_pcb;
@@ -344,8 +344,8 @@ module sliced_case(separate=20, place=true) {
 
     %if (!place) insert_part(); else translate([0,0,-pcb_cap_h]) rotate([0,180,0]) insert_part();
     
-    translate([0,0,-separate]) if (!place) pcb_cap(); else translate([-case_w-separate,0,pcb_cap_h+separate]) rotate([0,0,0]) pcb_cap();
+    !translate([0,0,-separate]) if (!place) pcb_cap(); else translate([-case_w-separate,0,pcb_cap_h+separate]) rotate([0,0,0]) pcb_cap();
 }
 
 
-sliced_case(place=false);
+sliced_case(place=true);
