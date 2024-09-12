@@ -49,8 +49,7 @@ pcb_h=8; // from legs+connectors on back side to power connector on front side
 pcb_antenna_connector_h=10;
 pcb_antenna_connector_dia=7; // SMA diameter
 pcb_antenna_back_legs=.01; // they are leveled with other connectors on that side
-antenna_w_padding=2.7;
-antenna_d_padding=2.425;
+antenna_w_padding=1.7;
 measured_distance_between_antennas_centers=(97+84.5)/2;
 echo("measured_distance_between_antennas_centers: ", measured_distance_between_antennas_centers);
 
@@ -179,7 +178,7 @@ module pcb() {
 
 //!%pcb();
 
-battery_w=35;
+battery_w=35.4;
 battery_d=79;
 battery_h=24;
 
@@ -190,7 +189,7 @@ module battery_compartment() {
         // NOTE: See [insert_part] slice for space for wires
         
         // Open cut for space for usb connection a charging status led
-        cube([battery_w+20,battery_d-2*10,battery_h-2*2], center=true);
+        cube([battery_w+10,battery_d-2*10,battery_h-2*3], center=true);
     }
 }
 
@@ -210,7 +209,10 @@ module on_off_switch() {
     
     module screw_post() {
         difference() {
-            cylinder(h=on_off_sw_h_to_pcb, d=on_off_sw_screw_post_dia, center=true);
+            union() {
+                cylinder(h=on_off_sw_h_to_pcb, d=on_off_sw_screw_post_dia, center=true);
+                translate([0,-on_off_sw_screw_post_dia/2,0]) cube([on_off_sw_screw_post_dia,on_off_sw_screw_post_dia,on_off_sw_h_to_pcb], center=true);
+            }
             translate([0,0,-screw_h/2+on_off_sw_h_to_pcb/2+0.01]) cylinder(h=screw_h, d=screw_dia, center=true);
         }
     }
@@ -220,7 +222,8 @@ module on_off_switch() {
             cube([on_off_sw_w,on_off_sw_d,on_off_sw_h], center=true);
         
             // button safe cut
-            translate([on_off_sw_w/2 + on_off_sw_button_w/2,0,+on_off_sw_button_h/2-on_off_sw_h/2]) cube([on_off_sw_button_w,on_off_sw_button_d,on_off_sw_button_h], center=true);
+            translate([on_off_sw_w/2 + on_off_sw_button_w/2 - 0.01,0,+on_off_sw_button_h/2-on_off_sw_h/2])
+              cube([on_off_sw_button_w,on_off_sw_button_d,on_off_sw_button_h], center=true);
             
             // backside safe cut space
             translate([-on_off_sw_w/2,0,0]) cube([on_off_sw_w,on_off_sw_d,on_off_sw_h], center=true);
@@ -228,8 +231,10 @@ module on_off_switch() {
         
         // screw posts
         union() {
-            translate([0,screw_posts_distance/2,on_off_sw_h_to_pcb/2-on_off_sw_h/2-0.01]) screw_post();
-            translate([0,-screw_posts_distance/2,on_off_sw_h_to_pcb/2-on_off_sw_h/2-0.01]) screw_post();
+            translate([0,screw_posts_distance/2,on_off_sw_h_to_pcb/2-on_off_sw_h/2-0.01])
+              rotate([0,0,180])screw_post();
+            translate([0,-screw_posts_distance/2,on_off_sw_h_to_pcb/2-on_off_sw_h/2-0.01])
+              rotate([0,0,0]) screw_post();
         }
     }
 }
@@ -238,11 +243,12 @@ module on_off_switch() {
 
 // TODO: add connection for fan --> to plug it when working at the bench w drone!!!???
 
-case_w=80;
+case_w=81;
 case_d=111;
 case_h_depth_for_lcd=1;
 case_h_depth=2;
 case_lcd_inner_isolation_layer_depth=2;
+battery_w_displacement=10;
 case_h=
     case_h_depth_for_lcd+
     lcd_panel_h+
@@ -266,7 +272,7 @@ module case(label=false) {
     module case_w_pcb_and_bat() {
         difference() {
             case_w_pcb();
-            translate([-case_w/2+battery_w/2+case_h_depth,0,battery_h/2-(+case_h/2-case_h_depth)]) battery_compartment();
+            translate([-case_w/2+battery_w/2+case_h_depth,0+battery_w_displacement,battery_h/2-(+case_h/2-case_h_depth)]) battery_compartment();
         }
     }
     
