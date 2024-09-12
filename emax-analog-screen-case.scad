@@ -42,6 +42,7 @@ module lcd_panel(label=false) {
 
 //!lcd_panel();
 
+pcb_spacer_thickness=1; // +1mm to width and depth to ease placing it in the box
 pcb_w=40;
 pcb_d=102;
 pcb_h=8; // from legs+connectors on back side to power connector on front side
@@ -162,6 +163,9 @@ module pcb() {
         union() {
             // pcb itself
             translate([0,0,-pcb_h/2]) cube([pcb_w,pcb_d,pcb_h], center=true);
+
+            // safe margin to ease in case placement
+            translate([0,0,-pcb_h/2]) cube([pcb_w+pcb_spacer_thickness,pcb_d+pcb_spacer_thickness,pcb_h], center=true);
             
             // antennas
             translate([center_to_antenna_center_x_vec,measured_distance_between_antennas_centers/2,0]) ant();
@@ -186,16 +190,16 @@ module battery_compartment() {
         // NOTE: See [insert_part] slice for space for wires
         
         // Open cut for space for usb connection a charging status led
-        cube([battery_w+20,battery_d-2*10,battery_h-2*5], center=true);
+        cube([battery_w+20,battery_d-2*10,battery_h-2*2], center=true);
     }
 }
 
 on_off_sw_w=14;
 on_off_sw_d=21;
 on_off_sw_h=7;
-on_off_sw_button_w=7.5;
-on_off_sw_button_d=7;
-on_off_sw_button_h=4.5;
+on_off_sw_button_w=8.5;
+on_off_sw_button_d=8;
+on_off_sw_button_h=5.5;
 on_off_sw_h_to_pcb=5;
 on_off_sw_screw_post_dia=5;
 
