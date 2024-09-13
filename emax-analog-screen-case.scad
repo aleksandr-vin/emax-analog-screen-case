@@ -73,7 +73,7 @@ module pcb() {
             cylinder(h=pcb_antenna_connector_h+pcb_h+pcb_antenna_back_legs, d=pcb_antenna_connector_dia, center=true);
     }
     
-    screw_dia=1.4;
+    screw_dia=1.8;
     screw_h=4.5;
     screw_post_dia=4.5;
     pcb_h_to_pcb=5;
@@ -201,9 +201,10 @@ on_off_sw_button_d=8;
 on_off_sw_button_h=5.5;
 on_off_sw_h_to_pcb=5;
 on_off_sw_screw_post_dia=5;
+on_off_sw_screw_post_displacement_w=-1;
 
 module on_off_switch() {
-    screw_dia=1.5;
+    screw_dia=1.8;
     screw_h=4;
     screw_posts_distance=15;
     
@@ -230,10 +231,10 @@ module on_off_switch() {
         }
         
         // screw posts
-        union() {
-            translate([0,screw_posts_distance/2,on_off_sw_h_to_pcb/2-on_off_sw_h/2-0.01])
+        #union() {
+            translate([on_off_sw_screw_post_displacement_w,screw_posts_distance/2,on_off_sw_h_to_pcb/2-on_off_sw_h/2-0.01])
               rotate([0,0,180])screw_post();
-            translate([0,-screw_posts_distance/2,on_off_sw_h_to_pcb/2-on_off_sw_h/2-0.01])
+            translate([on_off_sw_screw_post_displacement_w,-screw_posts_distance/2,on_off_sw_h_to_pcb/2-on_off_sw_h/2-0.01])
               rotate([0,0,0]) screw_post();
         }
     }
@@ -255,6 +256,7 @@ case_h=
     case_lcd_inner_isolation_layer_depth+
     battery_h+
     case_h_depth; // NOTE: mind isolation between [pcb_antenna_back_legs] and [lcd_panel]!!!
+echo("case height: ", case_h);
 case_inner_slice_wall=case_h_depth+2;
 top_battery_wall_h=2;
 
