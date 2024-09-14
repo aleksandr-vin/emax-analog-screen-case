@@ -231,7 +231,7 @@ module on_off_switch() {
         }
         
         // screw posts
-        #union() {
+        union() {
             translate([on_off_sw_screw_post_displacement_w,screw_posts_distance/2,on_off_sw_h_to_pcb/2-on_off_sw_h/2-0.01])
               rotate([0,0,180])screw_post();
             translate([on_off_sw_screw_post_displacement_w,-screw_posts_distance/2,on_off_sw_h_to_pcb/2-on_off_sw_h/2-0.01])
@@ -259,14 +259,34 @@ case_h=
 echo("case height: ", case_h);
 case_inner_slice_wall=case_h_depth+2;
 top_battery_wall_h=2;
-
-
+on_off_sw_w_displacement_in_case=2;
+on_off_sw_d_displacement_in_case=1;
 pcb_cap_h=case_h/2-case_h_depth-pcb_h+.01;
 
 module case(label=false) {
+    // NOTE: Usb hole is cut by battery-compartment
+    
+    // holding screws
+    holding_dia=10;
+    holding_on_d=1;
+    holding_on_w=-0.1;
+
+    module holds(dia, h=case_h) {
+        module holding_cyl() {
+            cylinder(h=h, d=dia, center=true);
+        }
+        translate([case_w/2-holding_on_d*holding_dia/2,case_d/2-holding_on_w*holding_dia/2,0]) holding_cyl();
+        translate([-(case_w/2-holding_on_d*holding_dia/2),case_d/2-holding_on_w*holding_dia/2,0]) holding_cyl();
+        translate([case_w/2-holding_on_d*holding_dia/2,-case_d/2+holding_on_w*holding_dia/2,0]) holding_cyl();
+        translate([-(case_w/2-holding_on_d*holding_dia/2),-case_d/2+holding_on_w*holding_dia/2,0]) holding_cyl();
+    }
+    
     module case_w_pcb() {
         difference() {
-            cube([case_w, case_d, case_h], center=true);            
+            union() {
+                holds(dia=holding_dia);
+                cube([case_w, case_d, case_h], center=true);
+            }
             translate([case_w/2-pcb_w/2-case_h_depth,0,-(case_h/2-case_h_depth)]) rotate([180,0,0]) pcb();
         }
     }
@@ -281,7 +301,7 @@ module case(label=false) {
     module case_w_pcb_and_bat_and_power_sw() {
         difference() {
             case_w_pcb_and_bat();
-            translate([-case_w/2+on_off_sw_d/2+case_h_depth,on_off_sw_w/2-(+case_d/2-case_h_depth),-on_off_sw_h/2-(+case_h/2-case_h_depth)+pcb_h]) rotate([0,0,-90]) on_off_switch();
+            translate([-case_w/2+on_off_sw_d/2+case_h_depth+on_off_sw_w_displacement_in_case,on_off_sw_w/2-(+case_d/2-case_h_depth)+on_off_sw_d_displacement_in_case,-on_off_sw_h/2-(+case_h/2-case_h_depth)+pcb_h]) rotate([0,0,-90]) on_off_switch();
         }
     }
     
@@ -291,30 +311,10 @@ module case(label=false) {
             translate([((lcd_panel_w-lcd_screen_w)/2-lcd_screen_w_padding),0,case_h/2-case_h_depth_for_lcd]) lcd_panel(label);
         }
     }
-         
-    // NOTE: Usb hole is cut by battery-compartment
-    
-    // holding screws
-    holding_dia=5;
-    holding_on_d=0;
-    holding_on_w=1;
 
-    module holds(dia, h=case_h) {
-        module holding_cyl() {
-            cylinder(h=h, d=dia, center=true);
-        }
-        translate([case_w/2-holding_on_d*holding_dia/2,case_d/2-holding_on_w*holding_dia/2,0]) holding_cyl();
-        translate([-(case_w/2-holding_on_d*holding_dia/2),case_d/2-holding_on_w*holding_dia/2,0]) holding_cyl();
-        translate([case_w/2-holding_on_d*holding_dia/2,-case_d/2+holding_on_w*holding_dia/2,0]) holding_cyl();
-        translate([-(case_w/2-holding_on_d*holding_dia/2),-case_d/2+holding_on_w*holding_dia/2,0]) holding_cyl();
-    }
-
-    holding_inner_dia=2;    
+    holding_inner_dia=5.5;    
     difference() {
-        union() {
-            case_w_pcb_and_bat_and_power_sw_and_lcd(label);
-            holds(dia=holding_dia);
-        }
+        case_w_pcb_and_bat_and_power_sw_and_lcd();
         holds(dia=holding_inner_dia, h=case_h*2);
     }
 }
